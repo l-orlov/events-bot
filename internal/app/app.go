@@ -52,15 +52,14 @@ func Run(configPath string) {
 		lg.Fatalf("failed to create service: %v", err)
 	}
 
-	_ = svc
-
 	// Telegram bot
 	botApi, err := tgbotapi.NewBotAPI(cfg.TelegramToken)
 	if err != nil {
 		lg.Fatal(err)
 	}
 
-	bot := telegram.NewBot(botApi)
+	lg.Info("Starting bot")
+	bot := telegram.NewBot(lg, svc, botApi)
 	if err := bot.Start(); err != nil {
 		lg.Fatal(err)
 	}

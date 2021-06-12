@@ -2,14 +2,24 @@ package telegram
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/l-orlov/events-bot/internal/service"
+	"github.com/sirupsen/logrus"
 )
 
 type Bot struct {
+	log *logrus.Logger
+	svc *service.Service
 	bot *tgbotapi.BotAPI
 }
 
-func NewBot(bot *tgbotapi.BotAPI) *Bot {
+func NewBot(
+	log *logrus.Logger,
+	svc *service.Service,
+	bot *tgbotapi.BotAPI,
+) *Bot {
 	return &Bot{
+		log: log,
+		svc: svc,
 		bot: bot,
 	}
 }
@@ -30,6 +40,8 @@ func (b *Bot) Start() error {
 			continue
 		}
 
+		b.log.Debugf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
 		// Handle commands
 		if update.Message.IsCommand() {
 			// ToDo: add handling commands
@@ -37,10 +49,21 @@ func (b *Bot) Start() error {
 			continue
 		}
 
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "hello")
+		btn := tgbotapi.KeyboardButton{
+			RequestLocation: true,
+			Text:            "Gimme where u live!!",
+		}
+		msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn})
+		_, err = b.bot.Send(msg)
+		if err != nil {
+			b.log.Errorf("failed to send message: %v", err)
+		}
+
 		// Handle regular messages
 		// ToDo: add handling messages
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "hello")
-		_, _ = b.bot.Send(msg)
+		//msg := tgbotapi.NewMessage(update.Message.Chat.ID, "hello")
+		//_, _ = b.bot.Send(msg)
 	}
 
 	return nil
