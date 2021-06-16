@@ -7,7 +7,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TABLE userprofile
+CREATE TABLE IF NOT EXISTS userprofile
 (
     userprofile_id        BIGSERIAL PRIMARY KEY,
     location              VARCHAR(255) NOT NULL,

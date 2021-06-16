@@ -2,8 +2,10 @@ package app
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/l-orlov/events-bot/internal/config"
 	"github.com/l-orlov/events-bot/internal/repository"
 	"github.com/l-orlov/events-bot/internal/repository/postgres"
@@ -53,14 +55,17 @@ func Run(configPath string) {
 	}
 
 	// Telegram bot
-	botApi, err := tgbotapi.NewBotAPI(cfg.TelegramToken)
-	if err != nil {
-		lg.Fatal(err)
-	}
+	bot, err := telegram.NewBot(lg, svc, cfg.TelegramToken)
+	go func() {
+		bot.Start()
+	}()
+	lg.Infof("bot started")
 
-	lg.Info("Starting bot")
-	bot := telegram.NewBot(lg, svc, botApi)
-	if err := bot.Start(); err != nil {
-		lg.Fatal(err)
-	}
+	// Graceful Shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	<-quit
+
+	lg.Info("bot shutting down")
+	bot.Stop()
 }

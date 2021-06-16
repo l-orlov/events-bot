@@ -14,8 +14,6 @@ type MutexEvents struct {
 	Events []Event
 }
 
-
-
 func main() {
 	loc := "kzn"
 	cat := []string{"concert"}
